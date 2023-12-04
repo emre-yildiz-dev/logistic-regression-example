@@ -124,6 +124,57 @@ def train_logistic_regression(X: np.ndarray, y: np.ndarray, epochs: int, learnin
     return weights, costs
 
 
+def manual_train_test_split(X: np.ndarray, y: np.ndarray, test_size: float = 0.2) -> Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """
+    Manually splits the dataset into training and testing sets.
+
+    Parameters:
+    X (np.ndarray): The input features.
+    y (np.ndarray): The true labels.
+    test_size (float): The proportion of the dataset to include in the test split.
+
+    Returns:
+    Tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]: The training and testing sets (features and labels).
+    """
+    # Determine the split index
+    split_index = int(X.shape[0] * (1 - test_size))
+
+    # Split the dataset
+    X_train, X_test = X[:split_index], X[split_index:]
+    y_train, y_test = y[:split_index], y[split_index:]
+
+    return X_train, X_test, y_train, y_test
+
+def manual_accuracy_score(y_true: np.ndarray, y_pred: np.ndarray) -> float:
+    """
+    Calculates the accuracy score.
+
+    Parameters:
+    y_true (np.ndarray): The true labels.
+    y_pred (np.ndarray): The predicted labels.
+
+    Returns:
+    float: The accuracy score.
+    """
+    return np.sum(y_true == y_pred) / len(y_true)
+
+def manual_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarray:
+    """
+    Computes the confusion matrix.
+
+    Parameters:
+    y_true (np.ndarray): The true labels.
+    y_pred (np.ndarray): The predicted labels.
+
+    Returns:
+    np.ndarray: The confusion matrix.
+    """
+    TP = np.sum((y_true == 1) & (y_pred == 1))
+    TN = np.sum((y_true == 0) & (y_pred == 0))
+    FP = np.sum((y_true == 0) & (y_pred == 1))
+    FN = np.sum((y_true == 1) & (y_pred == 0))
+    return np.array([[TN, FP], [FN, TP]])
+
 
 
 # Press the green button in the gutter to run the script.
@@ -146,3 +197,20 @@ if __name__ == '__main__':
     trained_weights, training_costs = train_logistic_regression(features, labels, epochs, learning_rate)
 
     print(trained_weights)  # Displaying the trained weights
+
+    # Splitting the dataset manually
+    X_train, X_test, y_train, y_test = manual_train_test_split(features, labels, test_size=0.2)
+
+    # Training the model on the training set
+    trained_weights, _ = train_logistic_regression(X_train, y_train, epochs, learning_rate)
+
+    # Making predictions on the test set
+    test_predictions_prob = predict_logistic_regression(X_test, trained_weights)
+    test_predictions = (test_predictions_prob > 0.5).astype(int)  # Converting probabilities to binary predictions
+
+    # Evaluating the model manually
+    accuracy = manual_accuracy_score(y_test, test_predictions)
+    conf_matrix = manual_confusion_matrix(y_test, test_predictions)
+
+    print(accuracy, conf_matrix)  # Displaying the accuracy and confusion matrix
+
