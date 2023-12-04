@@ -177,6 +177,35 @@ def manual_confusion_matrix(y_true: np.ndarray, y_pred: np.ndarray) -> np.ndarra
 
 
 
+def evaluate_with_different_thresholds(X: np.ndarray, y: np.ndarray, weights: np.ndarray, thresholds: list) -> None:
+    """
+    Evaluates the logistic regression model with different classification thresholds.
+
+    Parameters:
+    X (np.ndarray): The input features for the test set.
+    y (np.ndarray): The true labels for the test set.
+    weights (np.ndarray): The trained weights of the model.
+    thresholds (list): A list of thresholds to evaluate.
+    """
+    for threshold in thresholds:
+        # Making predictions with the specified threshold
+        test_predictions_prob = predict_logistic_regression(X, weights)
+        test_predictions = (test_predictions_prob > threshold).astype(int)
+
+        # Evaluating the model
+        accuracy = manual_accuracy_score(y, test_predictions)
+        conf_matrix = manual_confusion_matrix(y, test_predictions)
+
+        print(f"\nThreshold: {threshold}")
+        print(f"Accuracy: {accuracy:.4f}")
+        print("Confusion Matrix:")
+        print(conf_matrix)
+
+
+
+
+
+
 # Press the green button in the gutter to run the script.
 if __name__ == '__main__':
     # Generating the synthetic dataset
@@ -213,4 +242,25 @@ if __name__ == '__main__':
     conf_matrix = manual_confusion_matrix(y_test, test_predictions)
 
     print(accuracy, conf_matrix)  # Displaying the accuracy and confusion matrix
+
+    # Testing different thresholds
+    thresholds = [0.4, 0.5, 0.6]
+    evaluate_with_different_thresholds(X_test, y_test, trained_weights, thresholds)
+
+    # Adjusting learning rate and epochs
+    adjusted_learning_rate = 0.005  # Lower learning rate
+    adjusted_epochs = 200  # Increased number of epochs
+
+    # Retraining the model with adjusted parameters
+    adjusted_trained_weights, _ = train_logistic_regression(X_train, y_train, adjusted_epochs, adjusted_learning_rate)
+
+    # Evaluating the model with the adjusted weights
+    # Using the default threshold of 0.5 for evaluation
+    adjusted_test_predictions_prob = predict_logistic_regression(X_test, adjusted_trained_weights)
+    adjusted_test_predictions = (adjusted_test_predictions_prob > 0.5).astype(int)
+
+    adjusted_accuracy = manual_accuracy_score(y_test, adjusted_test_predictions)
+    adjusted_conf_matrix = manual_confusion_matrix(y_test, adjusted_test_predictions)
+
+    print(adjusted_accuracy, adjusted_conf_matrix)  # Displaying the adjusted accuracy and confusion matrix
 
