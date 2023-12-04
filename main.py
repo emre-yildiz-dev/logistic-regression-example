@@ -202,6 +202,53 @@ def evaluate_with_different_thresholds(X: np.ndarray, y: np.ndarray, weights: np
         print(conf_matrix)
 
 
+def k_fold_cross_validation(X: np.ndarray, y: np.ndarray, k: int, epochs: int, learning_rate: float) -> Tuple[float, np.ndarray]:
+    """
+    Performs k-fold cross-validation for logistic regression.
+
+    Parameters:
+    X (np.ndarray): The input features.
+    y (np.ndarray): The true labels.
+    k (int): The number of folds.
+    epochs (int): The number of epochs for training in each fold.
+    learning_rate (float): The learning rate for the model.
+
+    Returns:
+    Tuple[float, np.ndarray]: The average accuracy across all folds and the average confusion matrix.
+    """
+    fold_size = X.shape[0] // k
+    accuracies = []
+    confusion_matrices = []
+
+    for i in range(k):
+        # Creating training and validation sets for the current fold
+        start, end = i * fold_size, (i + 1) * fold_size
+        X_valid, y_valid = X[start:end], y[start:end]
+        X_train = np.concatenate((X[:start], X[end:]), axis=0)
+        y_train = np.concatenate((y[:start], y[end:]), axis=0)
+
+        # Training the model
+        trained_weights, _ = train_logistic_regression(X_train, y_train, epochs, learning_rate)
+
+        # Making predictions on the validation set
+        valid_predictions_prob = predict_logistic_regression(X_valid, trained_weights)
+        valid_predictions = (valid_predictions_prob > 0.5).astype(int)
+
+        # Evaluating the model
+        accuracy = manual_accuracy_score(y_valid, valid_predictions)
+        conf_matrix = manual_confusion_matrix(y_valid, valid_predictions)
+
+        accuracies.append(accuracy)
+        confusion_matrices.append(conf_matrix)
+
+    # Calculating the average accuracy and confusion matrix
+    avg_accuracy = np.mean(accuracies)
+    avg_confusion_matrix = np.mean(confusion_matrices, axis=0)
+
+    return avg_accuracy, avg_confusion_matrix
+
+
+
 
 
 
@@ -263,4 +310,10 @@ if __name__ == '__main__':
     adjusted_conf_matrix = manual_confusion_matrix(y_test, adjusted_test_predictions)
 
     print(adjusted_accuracy, adjusted_conf_matrix)  # Displaying the adjusted accuracy and confusion matrix
+
+    # Perform 5-fold cross-validation
+    k_folds = 5
+    avg_accuracy, avg_confusion_matrix = k_fold_cross_validation(features, labels, k_folds, epochs, learning_rate)
+
+    print(avg_accuracy, avg_confusion_matrix)  # Displaying the average accuracy and confusion matrix
 
